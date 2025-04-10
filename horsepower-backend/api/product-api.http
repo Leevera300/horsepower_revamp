@@ -1,0 +1,27 @@
+### 상품 등록
+POST http://localhost:8080/api/products
+Content-Type: application/json
+
+{
+  "name": "KLAPS Hoodie",
+  "category": "MEN'S",
+  "description": "Oversized warm hoodie"
+}
+
+### 상품 전체 조회
+GET http://localhost:8080/api/products
+
+### 상품 수정
+PUT http://localhost:8080/api/products/2
+Content-Type: application/json
+
+{
+  "name": "KLAPS Limited Hoodie",
+  "category": "LIMITED",
+  "description": "Now with extra print"
+}
+
+### 상품 삭제
+DELETE http://localhost:8080/api/products/2
+
+

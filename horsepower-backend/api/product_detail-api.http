@@ -1,0 +1,34 @@
+### 상품 옵션 등록
+POST http://localhost:8080/api/product-details
+Content-Type: application/json
+
+{
+  "productId": 2,
+  "color": "Black",
+  "size": "L",
+  "quantity": 20,
+  "price": 49000,
+  "sale": 0
+}
+
+### 상품 옵션 단일 조회
+GET http://localhost:8080/api/product-details/1
+
+### 상품 옵션 전체 조회
+GET http://localhost:8080/api/product-details
+
+### 상품 옵션 수정
+PUT http://localhost:8080/api/product-details/1
+Content-Type: application/json
+
+{
+  "productId": 2,
+  "color": "Black",
+  "size": "XL",
+  "quantity": 10,
+  "price": 45000,
+  "sale": 10
+}
+
+### 상품 옵션 삭제
+DELETE http://localhost:8080/api/product_details/1
