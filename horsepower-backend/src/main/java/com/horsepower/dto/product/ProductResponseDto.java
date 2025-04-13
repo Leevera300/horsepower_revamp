@@ -6,14 +6,18 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-@AllArgsConstructor // 모든 필드를 받는 생성자 자동 생성
+@AllArgsConstructor
 public class ProductResponseDto {
 
     private Long id;
-    private String name;
+    private String nameKr;
+    private String nameEng;
+    private String descriptionKr;
+    private String descriptionEng;
     private String category;
-    private String description;
+    private String subCategory;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+
 

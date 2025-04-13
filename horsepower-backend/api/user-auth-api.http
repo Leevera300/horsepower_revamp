@@ -1,0 +1,20 @@
+### ✅ 회원가입
+POST http://localhost:8080/api/users/signup
+Content-Type: application/json
+
+{
+  "firstName": "Michael",
+  "lastName": "Rivera",
+  "dateOfBirth": "1994-02-06",
+  "email": "michael@example.com",
+  "password": "securePass123"
+}
+
+### ✅ 로그인
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+{
+  "email": "michael@example.com",
+  "password": "securePass123"
+}

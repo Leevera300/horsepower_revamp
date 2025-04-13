@@ -9,7 +9,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-
 @Entity // 이 클래스는 DB 테이블과 매핑되는 엔티티 클래스입니다.
 @Table(name = "product") // 실제 DB에서 테이블 이름을 "product"로 지정합니다.
 @EntityListeners(AuditingEntityListener.class) // 👈 이거 꼭 있어야 자동 설정 됨!
@@ -18,21 +17,32 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor // Lombok - 파라미터 없는 기본 생성자 자동 생성
 public class Product {
 
-    @Id // 기본 키(PK) 필드임을 나타냅니다.
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // auto_increment 설정
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name; // 상품 이름
-    
-    private String category; // 상품 카테고리
+    @Column(name = "name_kr")
+    private String nameKr;
 
-    @Column(columnDefinition = "TEXT")
-    private String description; // 상품 설명
+    @Column(name = "name_eng")
+    private String nameEng;
 
-    @CreatedDate // 등록 시간 자동 저장
+    @Column(columnDefinition = "TEXT", name = "description_kr")
+    private String descriptionKr;
+
+    @Column(columnDefinition = "TEXT", name = "description_eng")
+    private String descriptionEng;
+
+    private String category;
+
+    @Column(name = "sub_category")
+    private String subCategory;
+
+    @CreatedDate
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @LastModifiedDate // 수정 시간 자동 저장
+    @LastModifiedDate
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
-

@@ -11,81 +11,58 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service // 이 클래스는 비즈니스 로직을 담당하는 서비스 컴포넌트입니다.
-@RequiredArgsConstructor // 생성자 주입을 위한 Lombok 어노테이션 (final 필드 자동 주입)
+@Service
+@RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
 
     // ✅ 상품 등록
     public ProductResponseDto createProduct(ProductRequestDto dto) {
-        Product product = new Product(); // 새 Product 객체 생성
-        product.setName(dto.getName());
+        Product product = new Product();
+        product.setNameKr(dto.getNameKr());
+        product.setNameEng(dto.getNameEng());
+        product.setDescriptionKr(dto.getDescriptionKr());
+        product.setDescriptionEng(dto.getDescriptionEng());
         product.setCategory(dto.getCategory());
-        product.setDescription(dto.getDescription());
+        product.setSubCategory(dto.getSubCategory());
 
-        Product saved = productRepository.save(product); // DB에 저장
+        Product saved = productRepository.save(product);
 
-        // 응답 DTO로 변환하여 반환
-        return new ProductResponseDto(
-                saved.getId(),
-                saved.getName(),
-                saved.getCategory(),
-                saved.getDescription(),
-                saved.getCreatedAt(),
-                saved.getUpdatedAt()
-        );
+        return toDto(saved);
     }
 
     // ✅ 상품 전체 조회
     public List<ProductResponseDto> getAllProducts() {
-        return productRepository.findAll().stream() // 전체 상품 리스트 조회
-                .map(p -> new ProductResponseDto(
-                        p.getId(),
-                        p.getName(),
-                        p.getCategory(),
-                        p.getDescription(),
-                        p.getCreatedAt(),
-                        p.getUpdatedAt()
-                ))
-                .collect(Collectors.toList()); // Product → ProductResponseDto 리스트로 변환
+        return productRepository.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     // ✅ 상품 단일 조회
     public ProductResponseDto getProductById(Long id) {
-        Product product = productRepository.findById(id) // ID로 상품 찾기
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
 
-        return new ProductResponseDto(
-                product.getId(),
-                product.getName(),
-                product.getCategory(),
-                product.getDescription(),
-                product.getCreatedAt(),
-                product.getUpdatedAt()
-        );
+        return toDto(product);
     }
 
     // ✅ 상품 수정
     public ProductResponseDto updateProduct(Long id, ProductRequestDto dto) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
 
-        product.setName(dto.getName());
+        product.setNameKr(dto.getNameKr());
+        product.setNameEng(dto.getNameEng());
+        product.setDescriptionKr(dto.getDescriptionKr());
+        product.setDescriptionEng(dto.getDescriptionEng());
         product.setCategory(dto.getCategory());
-        product.setDescription(dto.getDescription());
-        product.setUpdatedAt(LocalDateTime.now()); // 수정 시간 갱신
+        product.setSubCategory(dto.getSubCategory());
+        product.setUpdatedAt(LocalDateTime.now());
 
-        Product updated = productRepository.save(product); // 수정 후 저장
+        Product updated = productRepository.save(product);
 
-        return new ProductResponseDto(
-                updated.getId(),
-                updated.getName(),
-                updated.getCategory(),
-                updated.getDescription(),
-                updated.getCreatedAt(),
-                updated.getUpdatedAt()
-        );
+        return toDto(updated);
     }
 
     // ✅ 상품 삭제
@@ -94,8 +71,24 @@ public class ProductService {
             throw new IllegalArgumentException("상품을 찾을 수 없습니다: " + id);
         }
 
-        productRepository.deleteById(id); // ID 기준 삭제
+        productRepository.deleteById(id);
+    }
+
+    // ✅ Entity → ResponseDto 변환 메서드
+    private ProductResponseDto toDto(Product p) {
+        return new ProductResponseDto(
+                p.getId(),
+                p.getNameKr(),
+                p.getNameEng(),
+                p.getDescriptionKr(),
+                p.getDescriptionEng(),
+                p.getCategory(),
+                p.getSubCategory(),
+                p.getCreatedAt(),
+                p.getUpdatedAt()
+        );
     }
 }
+
 
 

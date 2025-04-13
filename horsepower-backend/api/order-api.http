@@ -1,0 +1,28 @@
+### ✅ 주문 생성
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "email": "michael@example.com",
+  "productId": 3,
+  "productDetailId": 1,
+  "quantity": 2,
+  "totalPrice": 90000,
+  "paymentType": "CARD"
+}
+
+### ✅ 단건 주문 조회
+GET http://localhost:8080/api/orders/1
+
+### ✅ 회원 주문 목록 조회 (페이징 가능)
+GET http://localhost:8080/api/orders/user/1?page=0&size=5
+
+### ✅ 비회원 주문 목록 조회
+GET http://localhost:8080/api/orders/guest?email=michael@example.com&page=0&size=5
+
+### ✅ 주문 상태 변경 (예: PAID, SHIPPED, CANCELED)
+PUT http://localhost:8080/api/orders/1/status?status=PAID
+
+### ✅ 주문 취소 (자동으로 CANCELED 처리 + 재고 복구)
+PUT http://localhost:8080/api/orders/1/cancel

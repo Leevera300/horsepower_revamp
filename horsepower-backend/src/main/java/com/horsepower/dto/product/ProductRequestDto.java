@@ -1,22 +1,26 @@
 package com.horsepower.dto.product;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter // 자동으로 getter 생성
-@Setter // 자동으로 setter 생성
+@Getter
+@Setter
 public class ProductRequestDto {
 
-    @NotBlank(message = "상품명은 필수입니다.")
-    private String name;
+    @NotBlank(message = "한글 상품명은 필수입니다.")
+    private String nameKr;
 
-    @NotNull(message = "가격은 필수입니다.")
-    private Integer price;
+    @NotBlank(message = "영문 상품명은 필수입니다.")
+    private String nameEng;
 
-    private String description;
+    private String descriptionKr;
 
+    private String descriptionEng;
+
+    @NotBlank(message = "카테고리는 필수입니다.")
     private String category;
+
+    private String subCategory;
 }
 
