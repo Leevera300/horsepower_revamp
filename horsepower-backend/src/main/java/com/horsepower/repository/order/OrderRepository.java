@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     // 회원 주문 조회
@@ -13,4 +15,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     // 비회원 주문 조회
     Page<Order> findByEmail(String email, Pageable pageable);
+
+    Optional<Order> findByOrderNumber(String orderNumber);
+
+    boolean existsByOrderNumber(String orderNumber);
 } 

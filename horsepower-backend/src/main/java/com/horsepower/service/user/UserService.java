@@ -7,8 +7,11 @@ import com.horsepower.entity.user.User;
 import com.horsepower.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Locale;
 
 @Slf4j
 @Service
@@ -17,6 +20,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MessageSource messageSource;
 
     // ✅ 회원가입
     public UserResponseDto signup(UserSignupRequestDto dto) {
@@ -24,7 +28,9 @@ public class UserService {
 
         if (userRepository.existsByEmail(dto.getEmail())) {
             log.warn("Signup failed - Email already exists: {}", dto.getEmail());
-            throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+            throw new IllegalArgumentException(
+                messageSource.getMessage("user.email.exists", null, Locale.getDefault())
+            );
         }
 
         User user = new User();
@@ -37,7 +43,10 @@ public class UserService {
         User savedUser = userRepository.save(user);
         log.info("User successfully signed up with ID: {}", savedUser.getId());
 
-        return UserResponseDto.of("회원가입이 완료되었습니다.", savedUser.getId());
+        return UserResponseDto.of(
+            messageSource.getMessage("user.signup.success", null, Locale.getDefault()),
+            savedUser.getId()
+        );
     }
 
     // ✅ 로그인
@@ -47,16 +56,23 @@ public class UserService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> {
                     log.warn("Login failed - User not found: {}", dto.getEmail());
-                    return new IllegalArgumentException("이메일 또는 비밀번호가 틀렸습니다.");
+                    return new IllegalArgumentException(
+                        messageSource.getMessage("user.login.fail", null, Locale.getDefault())
+                    );
                 });
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             log.warn("Login failed - Invalid password for user: {}", dto.getEmail());
-            throw new IllegalArgumentException("이메일 또는 비밀번호가 틀렸습니다.");
+            throw new IllegalArgumentException(
+                messageSource.getMessage("user.login.fail", null, Locale.getDefault())
+            );
         }
 
         log.info("Login successful for user: {}", dto.getEmail());
-        return UserResponseDto.of("로그인 성공", user.getId());
+        return UserResponseDto.of(
+            messageSource.getMessage("user.login.success", null, Locale.getDefault()),
+            user.getId()
+        );
     }
 }
 

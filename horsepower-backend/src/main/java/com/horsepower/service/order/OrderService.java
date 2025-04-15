@@ -2,6 +2,7 @@ package com.horsepower.service.order;
 
 import com.horsepower.dto.order.OrderRequestDto;
 import com.horsepower.dto.order.OrderResponseDto;
+import com.horsepower.dto.address.AddressRequestDto;
 import com.horsepower.entity.order.Order;
 import com.horsepower.entity.order.Order.Status;
 import com.horsepower.entity.product.Product;
@@ -12,13 +13,16 @@ import com.horsepower.repository.order.OrderRepository;
 import com.horsepower.repository.product_detail.ProductDetailRepository;
 import com.horsepower.repository.product.ProductRepository;
 import com.horsepower.repository.user.UserRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.horsepower.service.address.AddressService;
+import com.horsepower.service.hot.HotItemService;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -33,6 +37,8 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final ProductDetailRepository productDetailRepository;
     private final UserRepository userRepository;
+    private final AddressService addressService;
+    private final HotItemService hotItemService;
     private final MessageSource messageSource;
 
     // ✅ 주문 생성
@@ -40,33 +46,43 @@ public class OrderService {
     public OrderResponseDto createOrder(OrderRequestDto dto) {
         log.info("Creating order for productDetailId: {}", dto.getProductDetailId());
 
-        // 상품 및 옵션 확인
+        // 1. 상품 및 옵션 확인
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new BusinessException(messageSource.getMessage("order.product.notfound", null, Locale.getDefault())));
         ProductDetail detail = productDetailRepository.findById(dto.getProductDetailId())
                 .orElseThrow(() -> new BusinessException(messageSource.getMessage("order.product.detail.notfound", null, Locale.getDefault())));
 
-        // 재고 확인
+        // 2. 재고 확인
         validateStock(detail, dto.getQuantity());
 
-        // 주문자 (회원 or 비회원)
+        // 3. 사용자 확인 (회원 or 비회원)
         User user = null;
+        String email = null;
+
         if (dto.getUserId() != null) {
+            // 회원 주문
             user = userRepository.findById(dto.getUserId())
                     .orElseThrow(() -> new BusinessException(messageSource.getMessage("order.user.notfound", null, Locale.getDefault())));
+            email = user.getEmail(); // 회원의 이메일 사용
+        } else if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+            // 비회원 주문
+            email = dto.getEmail();
+        } else {
+            throw new BusinessException(messageSource.getMessage("order.userOrEmail.required", null, Locale.getDefault()));
         }
 
-        // 총 가격 계산 및 검증
+        // 4. 총 가격 검증
         int calculatedTotalPrice = detail.getPrice() * dto.getQuantity();
         if (calculatedTotalPrice != dto.getTotalPrice()) {
             throw new BusinessException(messageSource.getMessage("order.price.mismatch", null, Locale.getDefault()));
         }
 
-        // 주문 생성
+        // 5. 주문 생성
         Order order = new Order();
-        order.setOrderNumber(generateOrderNumber());
+        String orderNumber = generateOrderNumber();
+        order.setOrderNumber(orderNumber);
         order.setUser(user);
-        order.setEmail(dto.getEmail());
+        order.setEmail(email);
         order.setProduct(product);
         order.setProductDetail(detail);
         order.setQuantity(dto.getQuantity());
@@ -75,18 +91,36 @@ public class OrderService {
         order.setOrderStatus(Status.PENDING);
         order.setCreatedAt(LocalDateTime.now());
 
-        // 재고 감소
-        try {
-            detail.setQuantity(detail.getQuantity() - dto.getQuantity());
-            productDetailRepository.save(detail);
-        } catch (IllegalStateException e) {
-            throw new BusinessException(messageSource.getMessage("order.stock.insufficient", 
-                new Object[]{detail.getQuantity()}, Locale.getDefault()));
-        }
+        // 6. 재고 감소
+        detail.setQuantity(detail.getQuantity() - dto.getQuantity());
+        productDetailRepository.save(detail);
 
+        // 7. 주문 저장
         Order saved = orderRepository.save(order);
         log.info("Order saved with number: {}", saved.getOrderNumber());
 
+        // ✅ 8. 주소 연동 저장
+        for (AddressRequestDto addressDto : dto.getAddresses()) {
+            // Verify the order exists before creating address
+            if (!orderRepository.existsByOrderNumber(orderNumber)) {
+                throw new BusinessException(messageSource.getMessage("order.notfound", null, Locale.getDefault()));
+            }
+            addressDto.setOrderNumber(orderNumber);
+            addressDto.setUserId(user != null ? user.getId() : null);
+            addressService.save(addressDto);
+            log.info("Address saved for order: {}", orderNumber);
+        }
+
+        // ✅ 9. 인기 상품 기록 테이블 업데이트
+        try {
+            hotItemService.increasePurchaseCount(saved.getProduct(), saved.getQuantity());
+            log.info("Hot item count updated for productId={}", saved.getProduct().getId());
+        } catch (Exception e) {
+            log.error("Failed to update hot items for product: {}", saved.getProduct().getId(), e);
+            // Continue with order creation even if hot items update fails
+        }
+
+        // 10. 응답 반환
         return mapToResponseDto(saved);
     }
 

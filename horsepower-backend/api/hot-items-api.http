@@ -1,0 +1,7 @@
+### ✅ 오늘의 인기 상품 조회
+GET http://localhost:8080/api/hot-items/today
+
+###
+
+### ✅ 특정 기간 인기 상품 조회
+GET http://localhost:8080/api/hot-items?start=2025-04-01&end=2025-04-15

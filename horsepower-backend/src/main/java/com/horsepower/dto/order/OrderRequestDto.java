@@ -1,20 +1,26 @@
 package com.horsepower.dto.order;
 
+import com.horsepower.dto.address.AddressRequestDto;
 import com.horsepower.entity.order.Order.PaymentType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class OrderRequestDto {
 
-    // 회원이면 userId, 비회원이면 email 필수
     private Long userId;
 
     @Email(message = "{order.email.invalid}")
     private String email;
+
+    @NotBlank(message = "{order.orderNumber.notblank}")
+    private String orderNumber;
 
     @NotNull(message = "{order.productId.notnull}")
     private Long productId;
@@ -34,8 +40,15 @@ public class OrderRequestDto {
     private PaymentType paymentType;
 
     @AssertTrue(message = "{order.userOrEmail.required}")
-    private boolean isUserOrEmailProvided() {
+    public boolean isUserOrEmailProvided() {
         return userId != null || (email != null && !email.isBlank());
     }
+
+    // ✅ 추가: 배송지 / 청구지 리스트 (2개)
+    @NotNull(message = "{order.addresses.notnull}")
+    @Size(min = 1, message = "{order.addresses.size}")
+    @Valid
+    private List<AddressRequestDto> addresses;
 }
+
 

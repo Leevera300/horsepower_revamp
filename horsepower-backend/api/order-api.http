@@ -1,28 +1,76 @@
-### ✅ 주문 생성
+### ✅ 주문 생성 (주소 포함)
 POST http://localhost:8080/api/orders
 Content-Type: application/json
 
 {
   "userId": 1,
   "email": "michael@example.com",
+  "orderNumber": "ORD-46B61D012",
   "productId": 3,
   "productDetailId": 1,
   "quantity": 2,
   "totalPrice": 90000,
-  "paymentType": "CARD"
+  "paymentType": "CARD",
+  "addresses": [
+    {
+      "type": "DELIVERY",
+      "orderNumber": "ORD-46B61D012",
+      "countryRegion": "South Korea",
+      "firstName": "Michael",
+      "lastName": "Lee",
+      "address1": "Seoul Gangnam-daero 123",
+      "address2": "KLAPS Office 3F",
+      "postalCode": "06236",
+      "city": "Seoul",
+      "state": "KR",
+      "phoneNumber": "010-1234-5678"
+    },
+    {
+      "type": "BILLING",
+      "orderNumber": "ORD-46B61D012",
+      "countryRegion": "South Korea",
+      "firstName": "Michael",
+      "lastName": "Lee",
+      "address1": "Same as delivery",
+      "address2": "",
+      "postalCode": "06236",
+      "city": "Seoul",
+      "state": "KR",
+      "phoneNumber": "010-1234-5678"
+    }
+  ],
+  "hot_items_by_date": [
+    {
+      "productId": 3,
+      "purchaseCount": 2
+    }
+  ]
 }
 
-### ✅ 단건 주문 조회
-GET http://localhost:8080/api/orders/1
 
-### ✅ 회원 주문 목록 조회 (페이징 가능)
-GET http://localhost:8080/api/orders/user/1?page=0&size=5
+### ✅ 단일 주문 조회
+GET http://localhost:8080/api/orders/3
 
-### ✅ 비회원 주문 목록 조회
-GET http://localhost:8080/api/orders/guest?email=michael@example.com&page=0&size=5
+### ✅ 사용자 주문 목록 조회 (회원)
+GET http://localhost:8080/api/orders/user/1?page=0&size=10
 
-### ✅ 주문 상태 변경 (예: PAID, SHIPPED, CANCELED)
-PUT http://localhost:8080/api/orders/1/status?status=PAID
+### ✅ 사용자 주문 목록 조회 (비회원)
+GET http://localhost:8080/api/orders/guest?email=michael@example.com&page=0&size=10
 
-### ✅ 주문 취소 (자동으로 CANCELED 처리 + 재고 복구)
-PUT http://localhost:8080/api/orders/1/cancel
+### ✅ 주문 상태 업데이트
+PUT http://localhost:8080/api/orders/3/status?status=CANCELED
+
+### ✅ 주문 취소 (간편)
+PUT http://localhost:8080/api/orders/4/cancel
+
+### ✅ 오늘의 인기 상품 조회
+GET http://localhost:8080/api/hot-items/today?page=0&size=10
+
+### ✅ 특정 날짜의 인기 상품 조회
+GET http://localhost:8080/api/hot-items/date/2025-04-15?page=0&size=10
+
+### ✅ 특정 기간의 인기 상품 조회
+GET http://localhost:8080/api/hot-items/range?start=2025-04-01&end=2025-04-15&page=0&size=10
+
+### ✅ 특정 상품의 특정 기간 판매량 조회
+GET http://localhost:8080/api/hot-items/product/3?start=2025-04-01&end=2025-04-15
